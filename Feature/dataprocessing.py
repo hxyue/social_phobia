@@ -5,6 +5,9 @@ import pickle
 import pandas as pd
 import os
 import json
+import jieba
+import jieba.posseg as pseg #词性标注
+import jieba.analyse as anls #关键词提取
 
 
 def get_follower():
@@ -87,9 +90,10 @@ def get_user_profile():
         user_profile['survey_data'] = load_dict[id]['surveyData']
         user_profile['survey_sum_score'] = sum(map(eval, load_dict[id]['surveyData']))
         user_profile_df.append(user_profile)
+    print(user_profile_df)
     user_profile_df = pd.DataFrame(user_profile_df)
-    with open('../Data/Processed/user_profile', 'wb') as f:
-        pickle.dump(user_profile_df, f)
+    #with open('../Data/Processed/user_profile', 'wb') as f:
+        #pickle.dump(user_profile_df, f)
     return user_profile_df
 
 def read_pickle_data(file_name):
@@ -99,31 +103,12 @@ def read_pickle_data(file_name):
 
 
 if __name__ == '__main__':
-    """
-    a = get_user_profile()
-    print(a.columns,a.shape)
-    num = a.isna().sum()
-    print(a[a['has_service_tel'].isna()])
-    print(num)
-    print(a.iloc[0])
-    """
-    a = get_comments()
-    b = get_blog_content()
-    print(a.columns)
-    print(b.columns)
-    #print(set(b['转发_博文独立网址'].values))
-    print(b[b['转发_博文独立网址']=='https://weibo.com/1732839834/ykovTiEgP'].values)
-    num = b.isna().sum()
-    print(num)
-    print(b[b['评论数'] >= 2990].iloc[0])
-    print(b[b['评论数']>=2990].iloc[0]['博文独立网址'])
-    print(a.shape, b.shape)
-    print(set(a['origin_blog_id'].values[:10]))
-    print(set(b['博文独立网址'].values[:10]))
-    print(b[b['博文独立网址'] == 'http://weibo.com/5646666600/IsRcv3Vdw?from=page_1005055672431790_profile&wvr=6&mod=weibotime']['博主'])
-    result = pd.merge(b,a, left_on='博文独立网址',right_on='origin_blog_id',how='left')
-    sample = result[result['博主_x']=='做包子的小丸子']
-    print(sample[sample['评论数']>=6]['博文独立网址'].values)
-    print(sample['评论数'].values)
 
-#print(get_user_profile().columns)
+    user_profile_df = get_user_profile()
+    blog_content_df = get_blog_content()
+    print(blog_content_df)
+    print(blog_content_df.columns)
+    choiceres = blog_content_df.pivot_table(values='博文', index='博主', aggfunc=lambda x: x.str.cat(sep='\n'))
+    print(choiceres['博文'])
+    seg_list = jieba.cut_for_search("他毕业于上海交通大学机电系，后来在一机部上海电器科学研究所工作")
+    print("【搜索引擎模式】：" + "/ ".join(seg_list))
